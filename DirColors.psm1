@@ -1,3 +1,5 @@
+$ExecutableSuffixes = (".cmd", ".ps1", ".exe", ".dll", ".scr", ".ocx")
+
 $DefaultColors = @{
     Default = "0";
     File = "0";
@@ -58,18 +60,18 @@ Function Import-DirColors($Path) {
 
 Function Get-ColorCode($fi) {
     If ($fi.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
-        $cc = $script:DirColors.Device
         If ($fi.LinkType -Eq "SymbolicLink" -Or $fi.LinkType -Eq "Junction") {
-            $cc = $script:DirColors.Link
             $tfn = [System.IO.Path]::Combine($fi.Directory.FullName, $fi.Target)
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
-                $cc = $script:DirColors.Orphan
+                Return $script:DirColors.Orphan
             } ElseIf ($cc -Eq "target") {
-                $cc = Get-ColorCode($tfi)
+                Return Get-ColorCode($tfi)
             }
+
+            Return $script:DirColors.Link
         }
-        Return $cc
+        Return $script:DirColors.Device
     }
 
     If ($fi -Is [System.IO.DirectoryInfo]) {
@@ -77,8 +79,13 @@ Function Get-ColorCode($fi) {
     } Else {
         $ext = $fi.Extension
 
+        # This is likely to be wrong: Extensions are quicker since we've mapped
+        # them all to colors, but ls probably matches wildcards more strongly
+        # than extensions (since they're more expressive, and therefore more
+        # specific)
         If (-Not [String]::IsNullOrEmpty($ext)) {
-            If ($ext -In (".cmd", ".ps1", ".exe", ".dll", ".scr", ".ocx")) {
+            # Fast path: extension matching (pre-hashed)
+            If ($ext -In $script:ExecutableSuffixes) {
                 return $script:DirColors.Executable
             }
 
@@ -89,6 +96,7 @@ Function Get-ColorCode($fi) {
         }
 
         ForEach($k in $script:DirColors.Matches.Keys) {
+            # Slow path: wildcard matching
             If ($fi.Name -Like $k) {
                 Return $script:DirColors.Matches.Item($k)
             }
