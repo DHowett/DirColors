@@ -1,16 +1,20 @@
+$DefaultColors = @{
+    Default = "0";
+    File = "0";
+    Directory = "01;34";
+    Link = "01;36";
+    Device = "01;33";
+    Orphan = "0";
+    Missing = "0";
+    Executable = "01;32";
+    Extensions = @{};
+    Matches = @{};
+}
+
+$DirColors = $DefaultColors
+
 Function Parse-DirColors($filename) {
-    $out = @{
-        Default = "0";
-        Directory = "0";
-        File = "0";
-        Link = "0";
-        Device = "0";
-        Orphan = "0";
-        Missing = "0";
-        Executable = "0";
-        Extensions = @{};
-        Matches = @{};
-    };
+    $out = $DefaultColors.Clone();
 
     Get-Content $filename -Encoding UTF8 | % {
         If ($_ -Match '^\s*$' -Or $_ -Match '^\s*#.*$') {
@@ -46,6 +50,10 @@ Function Parse-DirColors($filename) {
     }
 
     Return $out
+}
+
+Function Import-DirColors($Path) {
+    $script:DirColors = Parse-DirColors($Path)
 }
 
 Function Get-ColorCode($fi) {
@@ -87,10 +95,6 @@ Function Get-ColorCode($fi) {
     }
 
     Return $script:DirColors.Default
-}
-
-Function Import-DirColors($Path) {
-    $script:DirColors = Parse-DirColors($Path)
 }
 
 Function Format-ColorizedFilename() {
