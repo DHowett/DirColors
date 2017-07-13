@@ -65,6 +65,8 @@ Function Get-ColorCode($fi) {
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
                 $cc = $script:DirColors.Orphan
+            } ElseIf ($cc -Eq "target") {
+                $cc = Get-ColorCode($tfi)
             }
         }
         Return $cc
