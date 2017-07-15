@@ -28,8 +28,12 @@ Update-DirColors ~\dir_colors
 
 ## Screenshots
 
+### PowerShell formatters
 ![DirColors table listing](assets/DirColors-Table.png)
 
 ![DirColors wide listing](assets/DirColors-Wide.png)
 
 ![DirColors list listing](assets/DirColors-List.png)
+
+### Coreutils integration
+![DirColors Coreutils integration](assets/DirColors-Coreutils-Integration.png)
