@@ -9,6 +9,11 @@ DirColors adds support for:
 * Parsing dircolors-formatted files
 * Colorizing filenames in default, table, wide and list-formatted renditions of file information.
 * Displaying the targets of symbolic links and directory junction points
+* Parsing `LS_COLORS` from your environment
+* Storing a dircolors-compatible `LS_COLORS` in your environment for coreutils
+
+For compatibility with existing utilities, DirColors will automatically read `$LS_COLORS` from the
+environment when it is loaded and write back to it when the color scheme is updated.
 
 ## Usage
 
@@ -16,6 +21,8 @@ Assuming you've installed the module somewhere in your module path, just import 
 
 ```powershell
 Import-Module DirColors
+
+# Load a color scheme
 Update-DirColors ~\dir_colors
 ```
 
