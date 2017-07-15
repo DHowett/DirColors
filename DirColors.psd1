@@ -6,7 +6,7 @@
 	CompanyName = 'HowettNET'
 	Copyright = '(c) 2017 Dustin L. Howett. All rights reserved.'
 	Description = 'Provides dircolors-like functionality to all System.IO.FilesystemInfo formatters'
-	FunctionsToExport = @("Format-ColorizedFilename", "Format-ColorizedLinkTarget", "Format-ColorizedFilenameAndLinkTarget", "Import-DirColors")
+	FunctionsToExport = @("Format-ColorizedFilename", "Format-ColorizedLinkTarget", "Format-ColorizedFilenameAndLinkTarget", "Import-DirColors", "ConvertTo-LSColors", "Update-DirColors")
 	CmdletsToExport = @()
 	VariablesToExport = '*'
 	AliasesToExport = @()

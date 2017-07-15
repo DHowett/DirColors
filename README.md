@@ -16,7 +16,7 @@ Assuming you've installed the module somewhere in your module path, just import 
 
 ```powershell
 Import-Module DirColors
-Import-DirColors ~\dir_colors
+Update-DirColors ~\dir_colors
 ```
 
 ## Screenshots

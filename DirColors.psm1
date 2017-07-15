@@ -1,24 +1,36 @@
 $ExecutableSuffixes = (".cmd", ".ps1", ".exe", ".dll", ".scr", ".ocx")
 
-$DefaultColors = @{
-    Default = "0";
-    File = "0";
-    Directory = "01;34";
-    Link = "01;36";
-    Device = "01;33";
-    Orphan = "0";
-    Missing = "0";
-    Executable = "01;32";
-    Extensions = @{};
-    Matches = @{};
+Function New-ColorScheme {
+    Return [PSCustomObject]@{
+        PSTypeName = "ColorScheme";
+        Default = "0";
+        File = "0";
+        Directory = "01;34";
+        Link = "01;36";
+        Device = "01;33";
+        Orphan = "0";
+        Missing = "0";
+        Executable = "01;32";
+        Extensions = @{};
+        Matches = @{};
+    }
 }
 
+$DefaultColors = New-ColorScheme
 $DirColors = $DefaultColors
 
-Function Parse-DirColors($filename) {
-    $out = $DefaultColors.Clone();
+Function Import-DirColors() {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string[]]$Path,
 
-    Get-Content $filename -Encoding UTF8 | % {
+        [Parameter()]
+        [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]$Encoding = [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]::UTF8
+    )
+    $out = New-ColorScheme
+
+    Get-Content -Path:$Path -Encoding:$Encoding | % {
         If ($_ -Match '^\s*$' -Or $_ -Match '^\s*#.*$') {
             Return
         }
@@ -27,35 +39,66 @@ Function Parse-DirColors($filename) {
         $arg = $e[1]
         $canon = $null
         Switch ($param) {
+            "COLOR" { Return }
+            "TERM" { Return }
+            "EIGHTBIT" { Return }
+
             "NORMAL" { $canon = "Default" }
             "FILE" { $canon = "File" }
             "DIR" { $canon = "Directory" }
             "LINK" { $canon = "Link" }
+            "FIFO" { Return }
+            "SOCK" { Return }
+            "DOOR" { Return }
             "BLK" { $canon = "Device" } # Not the best mapping
+            "CHR" { Return }
             "ORPHAN" { $canon = "Orphan" }
-            "EXEC" { $canon = "Executable" }
             "MISSING" { $canon = "Missing" }
+            "SETUID" { Return }
+            "SETGID" { Return }
+            "STICKY_OTHER_WRITABLE" { Return }
+            "OTHER_WRITABLE" { Return }
+            "STICKY" { Return }
+            "EXEC" { $canon = "Executable" }
             default {
                 If ($param -Match '^\*?\.[^.]+$') {
                     $i = $param.IndexOf('.')
                     $ext = $param.Substring($i)
                     $out.Extensions[$ext] = $arg
                 } Else {
+                    If ($param -NotMatch '\*') {
+                        $param = '*' + $param
+                    }
                     $out.Matches[$param] = $arg
                 }
             }
         }
 
         If ($null -Ne $canon) {
-            $out[$canon] = $arg
+            $out.$canon = $arg
         }
     }
 
     Return $out
 }
 
-Function Import-DirColors($Path) {
-    $script:DirColors = Parse-DirColors($Path)
+Function ConvertTo-LSColors {
+    [CmdletBinding()]
+    Param (
+        [PSTypeName("ColorScheme")]$ColorScheme
+    )
+
+    return "<PLACEHOLDER>"
+}
+
+Function Update-DirColors {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string[]]$Path
+    )
+
+    $script:DirColors = Import-DirColors -Path:$Path
 }
 
 Function Get-ColorCode($fi) {
