@@ -176,10 +176,40 @@ Function ConvertFrom-LSColors {
 Function ConvertTo-LSColors {
     [CmdletBinding()]
     Param (
-        [PSTypeName("ColorScheme")]$ColorScheme
+        [PSTypeName("ColorScheme")]
+        [Parameter(ValueFromPipeline=$true)]
+        $ColorScheme
     )
 
-    return "<PLACEHOLDER>"
+    $tokens = ForEach($_ In (
+        "Default",
+        "File",
+        "Directory",
+        "Link",
+        "Pipe",
+        "Socket",
+        "Door",
+        "BlockDevice",
+        "CharacterDevice",
+        "Orphan",
+        "Missing",
+        "SetUid",
+        "SetGid",
+        "StickyOtherWritable",
+        "OtherWritable",
+        "Sticky",
+        "Executable"
+    )) { Convert-PropertyToLSColorsToken $ColorScheme $_ }
+
+    $tokens += ForEach($_ in $ColorScheme.Extensions.Keys) {
+        "*$_=" + $ColorScheme.Extensions.Item($_)
+    }
+
+    $tokens += ForEach($_ in $ColorScheme.Matches.Keys) {
+        "$_=" + $ColorScheme.Matches.Item($_)
+    }
+
+    Return $tokens -Join ":"
 }
 
 Function Update-DirColors {
