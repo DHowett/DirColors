@@ -7,10 +7,20 @@ Function New-ColorScheme {
         File = "0";
         Directory = "01;34";
         Link = "01;36";
-        Device = "01;33";
-        Orphan = "0";
+        Pipe = "00;33";
+        Socket = "01;35";
+        Door = "01;35";
+        BlockDevice = "01;33";
+        CharacterDevice = "01;33";
+        Orphan = "01;36";
         Missing = "0";
+        SetUid = "37;41";
+        SetGid = "30;43";
+        StickyOtherWritable = "30;42";
+        OtherWritable = "34;42";
+        Sticky = "37;44";
         Executable = "01;32";
+
         Extensions = @{};
         Matches = @{};
     }
@@ -18,6 +28,77 @@ Function New-ColorScheme {
 
 $DefaultColors = New-ColorScheme
 $DirColors = $DefaultColors
+
+Function script:Canonize-LSColorToken($token) {
+    Switch ($token) {
+        "no" { "Default" }
+        "fi" { "File" }
+        "di" { "Directory" }
+        "ln" { "Link" }
+        "pi" { "Pipe" }
+        "so" { "Socket" }
+        "do" { "Door" }
+        "bd" { "BlockDevice" }
+        "cd" { "CharacterDevice" }
+        "or" { "Orphan" }
+        "mi" { "Missing" }
+        "su" { "SetUid" }
+        "sg" { "SetGid" }
+        "tw" { "StickyOtherWritable" }
+        "ow" { "OtherWritable" }
+        "st" { "Sticky" }
+        "ex" { "Executable" }
+        default { $null }
+    }
+}
+
+Function script:Canonize-DirColorsTOken($token) {
+    Switch ($token) {
+        "NORMAL" { "Default" }
+        "FILE" { "File" }
+        "DIR" { "Directory" }
+        "LINK" { "Link" }
+        "FIFO" { "Pipe" }
+        "SOCK" { "Socket" }
+        "DOOR" { "Door" }
+        "BLK" { "BlockDevice" }
+        "CHR" { "CharacterDevice" }
+        "ORPHAN" { "Orphan" }
+        "MISSING" { "Missing" }
+        "SETUID" { "SetUid" }
+        "SETGID" { "SetGid" }
+        "STICKY_OTHER_WRITABLE" { "StickyOtherWritable" }
+        "OTHER_WRITABLE" { "OtherWritable" }
+        "STICKY" { "Sticky" }
+        "EXEC" { "Executable" }
+        default { $null }
+    }
+}
+
+Function script:Convert-PropertyToLSColorsToken($scheme, $property) {
+    $c = Switch ($property) {
+        "Default" { "no" }
+        "File" { "fi" }
+        "Directory" { "di" }
+        "Link" { "ln" }
+        "Pipe" { "pi" }
+        "Socket" { "so" }
+        "Door" { "do" }
+        "BlockDevice" { "bd" }
+        "CharacterDevice" { "cd" }
+        "Orphan" { "or" }
+        "Missing" { "mi" }
+        "SetUid" { "su" }
+        "SetGid" { "sg" }
+        "StickyOtherWritable" { "tw" }
+        "OtherWritable" { "ow" }
+        "Sticky" { "st" }
+        "Executable" { "ex" }
+        default { Return $null }
+    }
+
+    $c + "=" + $scheme.$property
+}
 
 Function Import-DirColors() {
     [CmdletBinding()]
@@ -28,56 +109,66 @@ Function Import-DirColors() {
         [Parameter()]
         [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]$Encoding = [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]::UTF8
     )
+
     $out = New-ColorScheme
 
     Get-Content -Path:$Path -Encoding:$Encoding | % {
         If ($_ -Match '^\s*$' -Or $_ -Match '^\s*#.*$') {
             Return
         }
-        $e = $_.Trim() -Split "\s+"
-        $param = $e[0]
-        $arg = $e[1]
-        $canon = $null
-        Switch ($param) {
-            "COLOR" { Return }
-            "TERM" { Return }
-            "EIGHTBIT" { Return }
+        $param, $arg, $rest = $_.Trim() -Split "\s+"
 
-            "NORMAL" { $canon = "Default" }
-            "FILE" { $canon = "File" }
-            "DIR" { $canon = "Directory" }
-            "LINK" { $canon = "Link" }
-            "FIFO" { Return }
-            "SOCK" { Return }
-            "DOOR" { Return }
-            "BLK" { $canon = "Device" } # Not the best mapping
-            "CHR" { Return }
-            "ORPHAN" { $canon = "Orphan" }
-            "MISSING" { $canon = "Missing" }
-            "SETUID" { Return }
-            "SETGID" { Return }
-            "STICKY_OTHER_WRITABLE" { Return }
-            "OTHER_WRITABLE" { Return }
-            "STICKY" { Return }
-            "EXEC" { $canon = "Executable" }
-            default {
-                If ($param -Match '^\*?\.[^.]+$') {
-                    $i = $param.IndexOf('.')
-                    $ext = $param.Substring($i)
-                    $out.Extensions[$ext] = $arg
-                } Else {
-                    If ($param -NotMatch '\*') {
-                        $param = '*' + $param
-                    }
-                    $out.Matches[$param] = $arg
-                }
-            }
+        If ($param -In ("COLOR", "TERM", "EIGHTBIT")) {
+            Return
         }
 
-        If ($null -Ne $canon) {
+        $canon = Canonize-DirColorsToken $param
+        If ($null -Eq $canon) {
+            If ($param -Match '^\*?\.[^.]+$') {
+                # *.x with no other periods: fast path
+                $i = $param.IndexOf('.')
+                $ext = $param.Substring($i)
+                $out.Extensions[$ext] = $arg
+            } Else {
+                If ($param -NotMatch '\*') {
+                    # dircolors enforces a leading * when generating LS_COLORS
+                    $param = '*' + $param
+                }
+                $out.Matches[$param] = $arg
+            }
+        } Else {
             $out.$canon = $arg
         }
     }
+
+    Return $out
+}
+
+Function ConvertFrom-LSColors {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string]$LSColors
+    )
+
+    $out = New-ColorScheme
+
+    ForEach ($_ In $LSColors -Split ":") {
+        $param, $arg = $_ -Split "="
+        $canon = Canonize-LSColorToken $param
+        If ($null -Eq $canon) {
+            If ($param -Match '^\*\.[^.]+$') {
+                # *.x with no other periods: fast path
+                $ext = $param.Substring(1)
+                $out.Extensions[$ext] = $arg
+            } Else {
+                # dircolors enforces a leading * when generating LS_COLORS
+                $out.Matches[$param] = $arg
+            }
+        } Else {
+            $out.$canon = $arg
+        }
+    } # $_
 
     Return $out
 }
@@ -114,7 +205,7 @@ Function Get-ColorCode($fi) {
 
             Return $script:DirColors.Link
         }
-        Return $script:DirColors.Device
+        Return $script:DirColors.BlockDevice
     }
 
     If ($fi -Is [System.IO.DirectoryInfo]) {
