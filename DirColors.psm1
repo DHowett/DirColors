@@ -220,6 +220,7 @@ Function Update-DirColors {
     )
 
     $script:DirColors = Import-DirColors -Path:$Path
+    $Env:LS_COLORS = ConvertTo-LSColors $script:DirColors
 }
 
 Function Get-ColorCode($fi) {
@@ -316,5 +317,9 @@ function Format-ColorizedFilenameAndLinkTarget() {
 }
 
 Update-FormatData -Prepend (Join-Path $PSScriptRoot "DirColors.format.ps1xml")
+
+If (-Not [String]::IsNullOrEmpty($Env:LS_COLORS)) {
+    $script:DirColors = ConvertFrom-LSColors $Env:LS_COLORS
+}
 
 # vim: ts=4 sw=4 et
