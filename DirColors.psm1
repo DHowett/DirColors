@@ -3,6 +3,7 @@ $ExecutableSuffixes = (".cmd", ".ps1", ".exe", ".dll", ".scr", ".ocx")
 $script:IgnoredDirColorsTokens = ("COLOR", "TERM", "EIGHTBIT")
 
 $script:ESC = [char]27
+$script:ws = [char[]]" `t"
 
 $script:LSColorsTokensToSchemeProperties = @{
     "no" = "Default";
@@ -110,7 +111,7 @@ Function Import-DirColors() {
         If ([string]::IsNullOrWhitespace($_) -Or $_ -Match '^\s*#') {
             Continue
         }
-        $param, $arg = $_.Split(" `t", 3, [System.StringSplitOptions]::RemoveEmptyEntries)[0, 1]
+        $param, $arg = $_.Split($script:ws, 3, [System.StringSplitOptions]::RemoveEmptyEntries)[0, 1]
 
         If ($param -In $script:IgnoredDirColorsTokens) {
             Continue
