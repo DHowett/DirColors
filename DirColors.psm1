@@ -3,7 +3,7 @@ $ExecutableSuffixes = (".cmd", ".ps1", ".exe", ".dll", ".scr", ".ocx")
 $script:IgnoredDirColorsTokens = ("COLOR", "TERM", "EIGHTBIT")
 
 $script:ESC = [char]27
-$script:ws = [char[]]" `t"
+$script:ws = [char[]]" `t`r"
 
 $script:LSColorsTokensToSchemeProperties = @{
     "no" = "Default";
@@ -99,16 +99,13 @@ Function Import-DirColors() {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-        [string[]]$Path,
-
-        [Parameter()]
-        [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]$Encoding = [Microsoft.PowerShell.Commands.FileSystemCmdletProviderEncoding]::UTF8
+        [string[]]$Path
     )
 
     $out = New-ColorScheme
 
-    ForEach ($_ In Get-Content -Path:$Path -Encoding:$Encoding) {
-        If ([string]::IsNullOrWhitespace($_) -Or $_ -Match '^\s*#') {
+    ForEach ($_ In (Get-Content -Path:$Path -ReadCount 0) -Split "`n") {
+        If ([string]::IsNullOrWhitespace($_)) {
             Continue
         }
         $param, $arg = $_.Split($script:ws, 3, [System.StringSplitOptions]::RemoveEmptyEntries)[0, 1]
