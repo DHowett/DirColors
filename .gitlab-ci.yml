@@ -10,5 +10,10 @@ deploy to psgallery:
         - /^v\d.*$/
     except:
         - branches
+    cache:
+        paths:
+            - ./dotnet
     script:
-        - pwsh -NoProfile -NoLogo ./publish.ps1 -Version "$Env:CI_COMMIT_TAG" -NuGetApiKey "$Env:NUGET_API_KEY"
+        - "[ -x ./dotnet/dotnet ] || rm -fr ./dotnet && curl https://dot.net/v1/dotnet-install.sh | bash -s -- --install-dir ./dotnet --channel 2.0"
+        - export PATH="$PWD/dotnet:$PATH"
+        - pwsh -NoProfile -NoLogo -Command ./publish.ps1 -Version '$Env:CI_COMMIT_TAG' -NuGetApiKey '$Env:NUGET_API_KEY'
