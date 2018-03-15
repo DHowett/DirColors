@@ -207,7 +207,7 @@ Function Update-DirColors {
 Function Get-ColorCode($fi) {
     If ($fi.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
         If ($fi.LinkType -Eq "SymbolicLink" -Or $fi.LinkType -Eq "Junction") {
-            $tfn = [System.IO.Path]::Combine($fi.Directory.FullName, $fi.Target)
+            $tfn = [System.IO.Path]::Combine($fi.Parent.FullName, $fi.Target)
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
                 Return $script:DirColors.Orphan
@@ -270,7 +270,7 @@ Function Format-ColorizedLinkTarget() {
     # Looking up LinkType requires opening the file; this is expensive.
     If ($FileInfo.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
         If ($FileInfo.LinkType -Eq "SymbolicLink" -Or $FileInfo.LinkType -Eq "Junction") {
-            $tfn = [System.IO.Path]::Combine($FileInfo.Directory.FullName, $FileInfo.Target)
+            $tfn = [System.IO.Path]::Combine($FileInfo.Parent.FullName, $FileInfo.Target)
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
                 Return "$ESC[$($script:DirColors.Missing)m$($FileInfo.Target)$ESC[0m"
