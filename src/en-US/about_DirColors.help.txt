@@ -1,0 +1,102 @@
+TOPIC
+    DirColors
+
+SHORT DESCRIPTION
+    DirColors colors the names of files and directories.
+
+LONG DESCRIPTION
+    DirColors leverages Powershell's custom formatter support to provide an
+    implementation of GNU coreutils' `ls --color=always` anywhere
+    FileInfo/DirectoryInfo objects are left to self-format.
+
+    DirColors adds support for:
+
+    * Parsing dircolors-formatted files
+    * Colorizing filenames in default, table, wide and list-formatted
+      renditions of file information.
+    * Displaying the targets of symbolic links and directory junction points
+    * Parsing `LS_COLORS` from your environment
+    * Storing a dircolors-compatible `LS_COLORS` in your environment for
+      coreutils
+
+    For compatibility with existing utilities, DirColors will automatically
+    read `$LS_COLORS` from the environment when it is loaded and write back to
+    it when the color scheme is updated.
+
+DIRCOLORS FILES
+    dircolors' preferred format is that of a newline-delimited set of records
+    specifying control directives, comments or file type (both freeform and
+    well-known) colorization.
+
+    Directive     | Description
+    --------------+
+    TERM xxxxx    | Enable colors for the specified terminal type. Ignored by
+                  | this module.
+    EIGHTBIT      | \
+    COLOR         |  | Generally ignored.
+    OPTIONS       | /
+    RESET xx      | Use xx as the ANSI Reset code
+
+    All non-directive and non-comment lines are parsed as file types, either
+    freeform or well-known.  Type lines are of the format:
+
+    .ext XX;YY;ZZ;...         # File extension
+    *suffix XX;YY;ZZ;...      # Right-anchored wildcard; the left side of the
+                              # filename may vary
+    <WELLKNOWN> XX;YY;ZZ;...  # See below
+
+    XX;YY;ZZ;... represents any number of ANSI SGR codes.
+
+    Codes
+    -----
+    00=none 01=bold 04=underscore 05=blink 07=reverse 08=concealed
+    Text color codes:
+    30=black 31=red 32=green 33=yellow 34=blue 35=magenta 36=cyan 37=white
+    Background color codes:
+    40=black 41=red 42=green 43=yellow 44=blue 45=magenta 46=cyan 47=white
+
+    Well-Known Name        | Description
+    -----------------------+
+    NORMAL                 | Normal files
+    FILE                   | ^
+    DIR                    | Directories
+    LINK                   | Symbolic Links; Links support the special color
+                           | `target', which indicates that the link should
+			   | take on the color of its destination.
+    MULTIHARDLINK         *| Files with multiple hard links
+    FIFO                  *| UNIX pipes
+    SOCK                  *| UNIX domain sockets
+    DOOR                  *| UNIX door
+    BLK                   %| Block device (UNIX) or Reparse point (Windows)
+    CHR                   *| Character device (UNIX)
+    ORPHAN                 | Symbolic link with missing destination
+    MISSING                | The aforementioned missing destination
+    SETUID                *| File marked setuid (UNIX)
+    SETGID                *| File marked setgid (UNIX)
+    CAPABILITY            *| File with capability (Linux)
+    STICKY_OTHER_WRITABLE *| Directory with sticky bit that is writable by
+                           | others
+    OTHER_WRITABLE        *| File or directory that is writable by others
+    STICKY                *| Directory with sticky bit
+    EXEC                  %| File with executable bit set (UNIX)
+                           | or file that can be executed (Windows)
+
+    Entries marked * are not supported in this module.
+    Entries marked % behave differently with this module.
+
+LS_COLORS
+    The official dircolors tool parses the above format into a compact
+    representation, and it is that compact representation that is passed to
+    tools such as `ls'.
+
+    This module maintains $Env:LS_COLORS for compatibility with such tools.
+
+COMPATIBILITY
+    This module is compatible with PowerShell 5.1 and PowerShell Core.  The
+    maintenance of and support for importing $Env:LS_COLORS ensures that this
+    module will consume LS_COLORS from a compatible environment.
+    Colors may bleed in wash.
+
+PRIMARY COMMANDS
+    Import-DirColors
+    Update-DirColors
