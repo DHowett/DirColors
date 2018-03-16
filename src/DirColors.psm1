@@ -1,4 +1,6 @@
-$ExecutableSuffixes = (".cmd", ".ps1", ".exe", ".dll", ".scr", ".ocx")
+If ($PSEdition -Eq "Desktop" -Or $IsWindows -Eq $True) {
+    $ExecutableSuffixes = $Env:PATHEXT -Split ";"
+}
 
 $script:IgnoredDirColorsTokens = ("COLOR", "TERM", "EIGHTBIT")
 
