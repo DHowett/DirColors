@@ -9,9 +9,11 @@ $script:ws = [char[]]" `t`r"
 
 $script:LSColorsTokensToSchemeProperties = @{
     "no" = "Default";
+    "rs" = "Reset";
     "fi" = "File";
     "di" = "Directory";
     "ln" = "Link";
+    "mh" = "MultiHardLink";
     "pi" = "Pipe";
     "so" = "Socket";
     "do" = "Door";
@@ -21,6 +23,7 @@ $script:LSColorsTokensToSchemeProperties = @{
     "mi" = "Missing";
     "su" = "SetUid";
     "sg" = "SetGid";
+    "ca" = "Capability";
     "tw" = "StickyOtherWritable";
     "ow" = "OtherWritable";
     "st" = "Sticky";
@@ -29,9 +32,11 @@ $script:LSColorsTokensToSchemeProperties = @{
 
 $script:SchemePropertiesToLSColors =  @{
     "Default"             = "no";
+    "Reset"               = "rs";
     "File"                = "fi";
     "Directory"           = "di";
     "Link"                = "ln";
+    "MultiHardLink"       = "mh";
     "Pipe"                = "pi";
     "Socket"              = "so";
     "Door"                = "do";
@@ -41,6 +46,7 @@ $script:SchemePropertiesToLSColors =  @{
     "Missing"             = "mi";
     "SetUid"              = "su";
     "SetGid"              = "sg";
+    "Capability"          = "ca";
     "StickyOtherWritable" = "tw";
     "OtherWritable"       = "ow";
     "Sticky"              = "st";
@@ -49,9 +55,11 @@ $script:SchemePropertiesToLSColors =  @{
 
 $script:DirColorsTokensToSchemeProperties = @{
     "NORMAL"                = "Default";
+    "RESET"                 = "Reset";
     "FILE"                  = "File";
     "DIR"                   = "Directory";
     "LINK"                  = "Link";
+    "MULTIHARDLINK"         = "MultiHardLink";
     "FIFO"                  = "Pipe";
     "SOCK"                  = "Socket";
     "DOOR"                  = "Door";
@@ -61,6 +69,7 @@ $script:DirColorsTokensToSchemeProperties = @{
     "MISSING"               = "Missing";
     "SETUID"                = "SetUid";
     "SETGID"                = "SetGid";
+    "CAPABILITY"            = "Capability";
     "STICKY_OTHER_WRITABLE" = "StickyOtherWritable";
     "OTHER_WRITABLE"        = "OtherWritable";
     "STICKY"                = "Sticky";
@@ -72,9 +81,11 @@ Function New-ColorScheme {
         PSTypeName = "ColorScheme";
 
         Default = "0";
+        Reset = "0";
         File = "0";
         Directory = "01;34";
         Link = "01;36";
+        MultiHardLink = "0";
         Pipe = "00;33";
         Socket = "01;35";
         Door = "01;35";
@@ -84,6 +95,7 @@ Function New-ColorScheme {
         Missing = "0";
         SetUid = "37;41";
         SetGid = "30;43";
+        Capability = "30;41";
         StickyOtherWritable = "30;42";
         OtherWritable = "34;42";
         Sticky = "37;44";
@@ -261,7 +273,7 @@ Function Format-ColorizedFilename() {
         [System.IO.FileSystemInfo]$FileInfo
     )
     $cc = Get-ColorCode($FileInfo)
-    Return "$ESC[${cc}m$($FileInfo.Name)$ESC[0m"
+    Return "$ESC[${cc}m$($FileInfo.Name)$ESC[$($script:DirColors.Reset)m"
 }
 
 Function Format-ColorizedLinkTarget() {
@@ -275,10 +287,10 @@ Function Format-ColorizedLinkTarget() {
             $tfn = [System.IO.Path]::Combine($FileInfo.Parent.FullName, $FileInfo.Target)
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
-                Return "$ESC[$($script:DirColors.Missing)m$($FileInfo.Target)$ESC[0m"
+                Return "$ESC[$($script:DirColors.Missing)m$($FileInfo.Target)$ESC[$($script:DirColors.Reset)m"
             } Else {
                 $tcc = Get-ColorCode($tfi)
-                Return "$ESC[${tcc}m$($FileInfo.Target)$ESC[0m"
+                Return "$ESC[${tcc}m$($FileInfo.Target)$ESC[$($script:DirColors.Reset)m"
             }
         }
     }
