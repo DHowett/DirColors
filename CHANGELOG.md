@@ -1,3 +1,7 @@
+### Version 1.1.1
+
+* Fixed an oversight that resulted in the miscoloration of relative symlinks.
+
 ### Version 1.1.0
 
 * Added support for RESET
