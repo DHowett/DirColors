@@ -218,10 +218,18 @@ Function Update-DirColors {
     $Env:LS_COLORS = ConvertTo-LSColors $script:DirColors
 }
 
+Function Get-ContainingDirectoryInfo($fi) {
+    If ($fi -Is [System.IO.DirectoryInfo]) {
+        Return $fi.Parent
+    }
+
+    Return $fi.Directory
+}
+
 Function Get-ColorCode($fi) {
     If ($fi.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
         If ($fi.LinkType -Eq "SymbolicLink" -Or $fi.LinkType -Eq "Junction") {
-            $tfn = [System.IO.Path]::Combine($fi.Parent.FullName, $fi.Target)
+            $tfn = [System.IO.Path]::Combine((Get-ContainingDirectoryInfo($fi)).FullName, $fi.Target)
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
                 Return $script:DirColors.Orphan
@@ -284,7 +292,7 @@ Function Format-ColorizedLinkTarget() {
     # Looking up LinkType requires opening the file; this is expensive.
     If ($FileInfo.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint)) {
         If ($FileInfo.LinkType -Eq "SymbolicLink" -Or $FileInfo.LinkType -Eq "Junction") {
-            $tfn = [System.IO.Path]::Combine($FileInfo.Parent.FullName, $FileInfo.Target)
+            $tfn = [System.IO.Path]::Combine((Get-ContainingDirectoryInfo($FileInfo)).FullName, $FileInfo.Target)
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
                 Return "$ESC[$($script:DirColors.Missing)m$($FileInfo.Target)$ESC[$($script:DirColors.Reset)m"
