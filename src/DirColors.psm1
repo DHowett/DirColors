@@ -131,7 +131,7 @@ Function Import-DirColors() {
         $canon = $script:DirColorsTokensToSchemeProperties[$param.ToUpper()]
         If ($null -Eq $canon) {
             $i = $param.IndexOf('.')
-            If ($i -Ne -1 -And $i -Eq $param.LastIndexOf('.')) {
+            If ($i -Le 1 -And $i -Eq $param.LastIndexOf('.')) {
                 # *.x with no other periods: fast path
                 If ($param[0] -Eq '*') {
                     $param = $param.Substring(1)
