@@ -233,7 +233,7 @@ Function Get-ColorCode($fi) {
             $tfi = (Get-Item $tfn -EA Ignore)
             If ($null -Eq $tfi) {
                 Return $script:DirColors.Orphan
-            } ElseIf ($cc -Eq "target") {
+            } ElseIf ($script:DirColors.Link -Eq "target") {
                 Return Get-ColorCode($tfi)
             }
 
