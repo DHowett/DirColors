@@ -1,3 +1,8 @@
+### Version 1.1.2
+
+* Fix a bug where we treated `*x.x` as an extension (not a wildcard)
+* Fix `LINK target`
+
 ### Version 1.1.1
 
 * Fixed an oversight that resulted in the miscoloration of relative symlinks.
